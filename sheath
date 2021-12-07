@@ -2,6 +2,8 @@
 
 SCRIPTNAME="$(basename "$0")"
 
+SAVED_ARGS="$@"
+
 # Check if PKGSCRIPT exists in the current directory and exit if not
 if [ ! -f PKGSCRIPT ]; then
     echo "PKGSCRIPT not found in current directory"
@@ -16,6 +18,14 @@ PKGSCRIPTDIR="$(pwd)"
 # Package building functions
 
 function make_package() {
+    # Check to see if we're not running in fakeroot using FAKEROOTKEY
+    echo ${FAKEROOTKEY}
+    if [ -z "${FAKEROOTKEY}" ]; then
+        enter_fakeroot
+
+        return 0
+    fi
+
     echo "Building ${NAME} v${VERSION}-${EPOCH}"
 
     mkdir -p "${NAME}-${VERSION}-${EPOCH}"
@@ -98,6 +108,8 @@ EOL
     xz "${PKGSCRIPTDIR}/${NAME}-${VERSION}-${EPOCH}.tar"
 
     echo "Done building ${NAME} v${VERSION}-${EPOCH}, see ${PKGSCRIPTDIR}/${NAME}-${VERSION}-${EPOCH}.tar.xz"
+
+    return 0
 }
 
 function install_package() {
@@ -109,8 +121,9 @@ function clean_package() {
     echo "Cleaning ${NAME} v${VERSION}-${EPOCH}"
     rm -r "${NAME}-${VERSION}-${EPOCH}"
     rm "${NAME}-${VERSION}-${EPOCH}.tar.xz"
-}
 
+    return 0
+}
 
 function join_by { 
     local d=${1-} f=${2-}; 
@@ -122,6 +135,11 @@ function join_by {
 
 
 # Misc functions
+
+enter_fakeroot() {
+	echo "Entering fakeroot"
+	fakeroot -- bash -$- "${BASH_SOURCE[0]}" "${SAVED_ARGS[@]}" || return $?
+}
 
 function help() {
     echo "Usage: ${SCRIPTNAME} [OPTIONS]"
