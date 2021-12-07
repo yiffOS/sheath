@@ -25,7 +25,7 @@ function make_package() {
         return 0
     fi
 
-    echo "Building ${NAME} v${VERSION}-${EPOCH}"
+    echo "=== Building ${NAME} v${VERSION}-${EPOCH} ==="
 
     mkdir -p "${NAME}-${VERSION}-${EPOCH}"
     cd "${NAME}-${VERSION}-${EPOCH}"
@@ -37,30 +37,30 @@ function make_package() {
 
     # Download from SRC array with curl
     for i in "${!SRC[@]}"; do
-        echo "Downloading from ${SRC[$i]}"
+        echo "=== Downloading from ${SRC[$i]} ==="
         curl -L "${SRC[$i]}" -o "$(basename ${SRC[$i]})"
         
         # Verify the download with a checksum from SUM array
         if [ "${SUM_TYPE}" = "sha512" ]; then
             if  ! [ "${SUM[i]}" = "$(sha512sum "$(basename ${SRC[$i]})" | cut -d ' ' -f 1)" ]; then
-                echo "Checksum mismatch"
+                echo "=== Checksum mismatch! ==="
                 exit 1
             fi
         elif [ "${SUM_TYPE}" = "sha256" ]; then
             if ! [ "${SUM[i]}" = "$(sha256sum "$(basename ${SRC[$i]})" | cut -d ' ' -f 1)" ]; then
-                echo "Checksum mismatch"
+                echo "=== Checksum mismatch! ==="
                 exit 1
             fi
         elif [ "${SUM_TYPE}" = "md5" ]; then
             if ! [ "${SUM[i]}" = "$(md5sum "$(basename ${SRC[$i]})" | cut -d ' ' -f 1)" ]; then
-                echo "Checksum mismatch"
+                echo "=== Checksum mismatch! ==="
                 exit 1
             fi
         fi
 
         # If the downloaded file is a tarball or a zip, extract it
         if [ "$(echo "${SRC[$i]}" | grep -E "\.tar\.gz|\.tar\.bz2|\.tar\.xz|\.zip")" ]; then
-            echo "Extracting $(basename ${SRC[$i]})"
+            echo "=== Extracting $(basename ${SRC[$i]}) ==="
             if [ "$(echo "${SRC[$i]}" | grep -E "\.tar\.gz|\.tar\.bz2|\.tar\.xz")" ]; then
                 tar -xf "$(basename ${SRC[$i]})"
             elif [ "$(echo "${SRC[$i]}" | grep -E "\.zip")" ]; then
@@ -70,15 +70,15 @@ function make_package() {
     done    
 
     cd ${WORKDIR}
-    prepare || echo "Skipping prepare..."
+    prepare || echo "=== Skipping prepare... ==="
     cd ${WORKDIR}
-    build || echo "Skipping build..."
+    build || echo "=== Skipping build... ==="
     cd ${WORKDIR}
-    postbuild || echo "Skipping postbuild..."
+    postbuild || echo "=== Skipping postbuild... ==="
     cd ${WORKDIR}
 
     # Compress the build data root into the package
-    echo "Compressing ${NAME}-${VERSION}-${EPOCH}"
+    echo "=== Compressing ${NAME}-${VERSION}-${EPOCH} ==="
 
     cd ${BUILD_DATA_ROOT}
     tar cf "${BUILD_ROOT}/data.tar" ./*
@@ -106,7 +106,7 @@ EOL
     tar cf "${PKGSCRIPTDIR}/${NAME}-${VERSION}-${EPOCH}.tar" PKG data.tar.xz
     xz "${PKGSCRIPTDIR}/${NAME}-${VERSION}-${EPOCH}.tar"
 
-    echo "Done building ${NAME} v${VERSION}-${EPOCH}, see ${PKGSCRIPTDIR}/${NAME}-${VERSION}-${EPOCH}.tar.xz"
+    echo "=== Done building ${NAME} v${VERSION}-${EPOCH}, see ${PKGSCRIPTDIR}/${NAME}-${VERSION}-${EPOCH}.tar.xz ==="
 
     return 0
 }
@@ -117,7 +117,7 @@ function install_package() {
 
 # Clean the package build directory
 function clean_package() {
-    echo "Cleaning ${NAME} v${VERSION}-${EPOCH}"
+    echo "=== Cleaning ${NAME} v${VERSION}-${EPOCH} ==="
     rm -r "${NAME}-${VERSION}-${EPOCH}"
     rm "${NAME}-${VERSION}-${EPOCH}.tar.xz"
 
@@ -136,7 +136,7 @@ function join_by {
 # Misc functions
 
 enter_fakeroot() {
-	echo "Entering fakeroot"
+	echo "=== Entering fakeroot ==="
 	fakeroot -- bash -$- "${BASH_SOURCE[0]}" "${SAVED_ARGS[@]}" || return $?
 }
 
