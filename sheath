@@ -19,7 +19,6 @@ PKGSCRIPTDIR="$(pwd)"
 
 function make_package() {
     # Check to see if we're not running in fakeroot using FAKEROOTKEY
-    echo ${FAKEROOTKEY}
     if [ -z "${FAKEROOTKEY}" ]; then
         enter_fakeroot
 
