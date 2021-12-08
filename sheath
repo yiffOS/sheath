@@ -132,6 +132,29 @@ function do_fakeroot_package() {
     return 0;
 }
 
+function create_PKGINFO() {
+    cat << EOL > PKGINFO
+{
+    "name": "${NAME}",
+    "version": "${VERSION}",
+    "epoch": ${EPOCH},
+    "description": "${DESC}",
+    "groups": $(jsonify "${GRPS[@]}"),
+    "url": "${URL}",
+    "license": $(jsonify "${LICENSES[@]}"),
+    "depends": $(jsonify "${DEPENDS[@]}"),
+    "optional_depends": $(jsonify "${OPT_DEPENDS[@]}"),
+    "make_depends": $(jsonify "${MK_DEPENDS[@]}"),
+    "provides": $(jsonify "${PROVIDES[@]}"),
+    "conflicts": $(jsonify "${CONFLICTS[@]}"),
+    "replaces": $(jsonify "${REPLACES[@]}"),
+    "maintainers": $(jsonify "${MAINTAINERS[@]}")
+}
+EOL
+}
+
+# Misc functions
+
 function join_by { 
     local d=${1-} f=${2-}; 
     if shift 2; 
@@ -140,8 +163,16 @@ function join_by {
     fi; 
 }
 
-
-# Misc functions
+function jsonify {
+    echo -n '['
+    while [ $# -gt 0 ]; do
+        x=${1//\\/\\\\}
+        echo -n \"${x//\"/\\\"}\"
+        [ $# -gt 1 ] && echo -n ', '
+        shift
+    done
+    echo ']'
+}
 
 enter_fakeroot() {
 	echo "=== Entering fakeroot ==="
@@ -164,7 +195,7 @@ function help() {
 }
 
 # Get runtime flags
-while getopts ":hbicf" opt; do
+while getopts ":hbicpf" opt; do
     case $opt in
         h)
             help
@@ -180,6 +211,10 @@ while getopts ":hbicf" opt; do
             ;;
         c)
             clean_package
+            exit 0
+            ;;
+        p)
+            create_PKGINFO
             exit 0
             ;;
         f)
