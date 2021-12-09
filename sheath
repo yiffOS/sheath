@@ -19,6 +19,7 @@ PKGSCRIPTDIR="$(pwd)"
 
 function make_package() {
     echo "=== Building ${NAME} v${VERSION}-${EPOCH} ==="
+    cd ${PKGSCRIPTDIR}
 
     mkdir -p "${NAME}-${VERSION}-${EPOCH}"
     cd "${NAME}-${VERSION}-${EPOCH}"
@@ -110,12 +111,19 @@ EOL
 }
 
 function install_package() {
+    echo "=== Installing ${NAME} v${VERSION}-${EPOCH} ==="
+    cd ${PKGSCRIPTDIR}
+
+    bulge li "${NAME}-${VERSION}-${EPOCH}.tar.xz"
+
     return 0
 }
 
 # Clean the package build directory
 function clean_package() {
     echo "=== Cleaning ${NAME} v${VERSION}-${EPOCH} ==="
+    cd ${PKGSCRIPTDIR}
+
     rm -r "${NAME}-${VERSION}-${EPOCH}"
     rm "${NAME}-${VERSION}-${EPOCH}.tar.xz"
 
