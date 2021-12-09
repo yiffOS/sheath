@@ -76,8 +76,11 @@ function make_package() {
     echo "=== Compressing ${NAME}-${VERSION}-${EPOCH} ==="
 
     cd ${BUILD_DATA_ROOT}
+
     tar cf "${BUILD_ROOT}/data.tar" ./*
+
     xz "${BUILD_ROOT}/data.tar"
+    DATA_SHA=$(sha512sum "${BUILD_ROOT}/data.tar.xz" | cut -d ' ' -f 1)
 
     cd ${BUILD_ROOT}
     cat << EOL > PKG
@@ -94,7 +97,7 @@ function make_package() {
     "provides": "$(join_by , "${PROVIDES[@]}")",
     "conflicts": "$(join_by , "${CONFLICTS[@]}")",
     "replaces": "$(join_by , "${REPLACES[@]}")",
-    "sha512sum": ""
+    "sha512sum": "${DATA_SHA}"
 }
 EOL
 
