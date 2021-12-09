@@ -214,19 +214,15 @@ while getopts ":hbicpf" opt; do
             ;;
         b)
             make_package
-            exit 0
             ;;
         i)
             install_package
-            exit 0
             ;;
         c)
             clean_package
-            exit 0
             ;;
         p)
             create_PKGINFO
-            exit 0
             ;;
         f)
             cd "${PKGSCRIPTDIR}"
