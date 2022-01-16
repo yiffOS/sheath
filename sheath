@@ -54,7 +54,7 @@ function make_package() {
 
         # If the downloaded file is a tarball or a zip, extract it
         if [ "$(file -b --mime-type "$(basename ${SRC[$i]})" | cut -d '/' -f 1)" = "application" ]; then
-            if [ "$(file -b --mime-type "$(basename ${SRC[$i]})" | cut -d '/' -f 2)" = "x-gzip" ]; then
+            if [ "$(file -b --mime-type "$(basename ${SRC[$i]})" | cut -d '/' -f 2)" = "gzip" ]; then
                 echo "=== Extracting $(basename ${SRC[$i]}) ==="
                 tar xzf "$(basename ${SRC[$i]})"
             elif [ "$(file -b --mime-type "$(basename ${SRC[$i]})" | cut -d '/' -f 2)" = "x-xz" ]; then
