@@ -53,11 +53,21 @@ function make_package() {
         fi
 
         # If the downloaded file is a tarball or a zip, extract it
-        if [ "$(echo "${SRC[$i]}" | grep -E "\.tar\.gz|\.tgz|\.tar\.bz2|\.tar\.xz|\.zip")" ]; then
-            echo "=== Extracting $(basename ${SRC[$i]}) ==="
-            if [ "$(echo "${SRC[$i]}" | grep -E "\.tar\.gz|\.tgz|\.tar\.bz2|\.tar\.xz")" ]; then
-                tar -xf "$(basename ${SRC[$i]})"
-            elif [ "$(echo "${SRC[$i]}" | grep -E "\.zip")" ]; then
+        if [ "$(file -b --mime-type "$(basename ${SRC[$i]})" | cut -d '/' -f 1)" = "application" ]; then
+            if [ "$(file -b --mime-type "$(basename ${SRC[$i]})" | cut -d '/' -f 2)" = "gzip" ]; then
+                echo "=== Extracting $(basename ${SRC[$i]}) ==="
+                tar xzf "$(basename ${SRC[$i]})"
+            elif [ "$(file -b --mime-type "$(basename ${SRC[$i]})" | cut -d '/' -f 2)" = "x-xz" ]; then
+                echo "=== Extracting $(basename ${SRC[$i]}) ==="
+                tar xJf "$(basename ${SRC[$i]})"
+            elif [ "$(file -b --mime-type "$(basename ${SRC[$i]})" | cut -d '/' -f 2)" = "x-bzip2" ]; then
+                echo "=== Extracting $(basename ${SRC[$i]}) ==="
+                tar xjf "$(basename ${SRC[$i]})"
+            elif [ "$(file -b --mime-type "$(basename ${SRC[$i]})" | cut -d '/' -f 2)" = "x-tar" ]; then
+                echo "=== Extracting $(basename ${SRC[$i]}) ==="
+                tar xf "$(basename ${SRC[$i]})"
+            elif [ "$(file -b --mime-type "$(basename ${SRC[$i]})" | cut -d '/' -f 2)" = "zip" ]; then
+                echo "=== Extracting $(basename ${SRC[$i]}) ==="
                 unzip "$(basename ${SRC[$i]})"
             fi
         fi
