@@ -31,44 +31,73 @@ function make_package() {
 
     # Download from SRC array with curl
     for i in "${!SRC[@]}"; do
-        echo "=== Downloading from ${SRC[$i]} ==="
-        curl -L "${SRC[$i]}" -o "$(basename ${SRC[$i]})"
+        # Check if a | is present in the URL, split it if it is as the 2nd array element will be the extracted folder name
+        if [[ "${SRC[$i]}" =~ "|" ]]; then
+            SRC_URL="${SRC[$i]%%|*}"
+            SRC_FOLDER="${SRC[$i]##*|}"
+        else
+            SRC_URL="${SRC[$i]}"
+        fi
+
+        echo "=== Downloading from ${SRC_URL} ==="
+        curl -L "${SRC_URL}" -o "$(basename ${SRC_URL})"
         
         # Verify the download with a checksum from SUM array
         if [ "${SUM_TYPE}" = "sha512" ]; then
-            if  ! [ "${SUM[i]}" = "$(sha512sum "$(basename ${SRC[$i]})" | cut -d ' ' -f 1)" ]; then
+            if  ! [ "${SUM[i]}" = "$(sha512sum "$(basename ${SRC_URL})" | cut -d ' ' -f 1)" ]; then
                 echo "=== Checksum mismatch! ==="
                 exit 1
             fi
         elif [ "${SUM_TYPE}" = "sha256" ]; then
-            if ! [ "${SUM[i]}" = "$(sha256sum "$(basename ${SRC[$i]})" | cut -d ' ' -f 1)" ]; then
+            if ! [ "${SUM[i]}" = "$(sha256sum "$(basename ${SRC_URL})" | cut -d ' ' -f 1)" ]; then
                 echo "=== Checksum mismatch! ==="
                 exit 1
             fi
         elif [ "${SUM_TYPE}" = "md5" ]; then
-            if ! [ "${SUM[i]}" = "$(md5sum "$(basename ${SRC[$i]})" | cut -d ' ' -f 1)" ]; then
+            if ! [ "${SUM[i]}" = "$(md5sum "$(basename ${SRC_URL})" | cut -d ' ' -f 1)" ]; then
                 echo "=== Checksum mismatch! ==="
                 exit 1
             fi
         fi
 
         # If the downloaded file is a tarball or a zip, extract it
-        if [ "$(file -b --mime-type "$(basename ${SRC[$i]})" | cut -d '/' -f 1)" = "application" ]; then
-            if [ "$(file -b --mime-type "$(basename ${SRC[$i]})" | cut -d '/' -f 2)" = "gzip" ]; then
-                echo "=== Extracting $(basename ${SRC[$i]}) ==="
-                tar xzf "$(basename ${SRC[$i]})"
-            elif [ "$(file -b --mime-type "$(basename ${SRC[$i]})" | cut -d '/' -f 2)" = "x-xz" ]; then
-                echo "=== Extracting $(basename ${SRC[$i]}) ==="
-                tar xJf "$(basename ${SRC[$i]})"
-            elif [ "$(file -b --mime-type "$(basename ${SRC[$i]})" | cut -d '/' -f 2)" = "x-bzip2" ]; then
-                echo "=== Extracting $(basename ${SRC[$i]}) ==="
-                tar xjf "$(basename ${SRC[$i]})"
-            elif [ "$(file -b --mime-type "$(basename ${SRC[$i]})" | cut -d '/' -f 2)" = "x-tar" ]; then
-                echo "=== Extracting $(basename ${SRC[$i]}) ==="
-                tar xf "$(basename ${SRC[$i]})"
-            elif [ "$(file -b --mime-type "$(basename ${SRC[$i]})" | cut -d '/' -f 2)" = "zip" ]; then
-                echo "=== Extracting $(basename ${SRC[$i]}) ==="
-                unzip "$(basename ${SRC[$i]})"
+        if [ "$(file -b --mime-type "$(basename ${SRC_URL})" | cut -d '/' -f 1)" = "application" ]; then
+            # Check if the SRC_FOLDER is set
+            if [ -n "${SRC_FOLDER}" ]; then
+                mkdir ${WORKDIR}/${SRC_FOLDER}
+                if [ "$(file -b --mime-type "$(basename ${SRC_URL})" | cut -d '/' -f 2)" = "gzip" ]; then
+                    echo "=== Extracting $(basename ${SRC_URL}) into ${SRC_FOLDER} ==="
+                    tar xzf "$(basename ${SRC_URL})" -C ${SRC_FOLDER}
+                elif [ "$(file -b --mime-type "$(basename ${SRC_URL})" | cut -d '/' -f 2)" = "x-xz" ]; then
+                    echo "=== Extracting $(basename ${SRC_URL}) into ${SRC_FOLDER} ==="
+                    tar xJf "$(basename ${SRC_URL})" -C ${SRC_FOLDER}
+                elif [ "$(file -b --mime-type "$(basename ${SRC_URL})" | cut -d '/' -f 2)" = "x-bzip2" ]; then
+                    echo "=== Extracting $(basename ${SRC_URL}) into ${SRC_FOLDER} ==="
+                    tar xjf "$(basename ${SRC_URL})" -C ${SRC_FOLDER}
+                elif [ "$(file -b --mime-type "$(basename ${SRC_URL})" | cut -d '/' -f 2)" = "x-tar" ]; then
+                    echo "=== Extracting $(basename ${SRC_URL}) into ${SRC_FOLDER} ==="
+                    tar xf "$(basename ${SRC_URL})" -C ${SRC_FOLDER}
+                elif [ "$(file -b --mime-type "$(basename ${SRC_URL})" | cut -d '/' -f 2)" = "zip" ]; then
+                    echo "=== Extracting $(basename ${SRC_URL}) into ${SRC_FOLDER} ==="
+                    unzip "$(basename ${SRC_URL})"
+                fi
+            else
+                if [ "$(file -b --mime-type "$(basename ${SRC_URL})" | cut -d '/' -f 2)" = "gzip" ]; then
+                    echo "=== Extracting $(basename ${SRC_URL}) ==="
+                    tar xzf "$(basename ${SRC_URL})"
+                elif [ "$(file -b --mime-type "$(basename ${SRC_URL})" | cut -d '/' -f 2)" = "x-xz" ]; then
+                    echo "=== Extracting $(basename ${SRC_URL}) ==="
+                    tar xJf "$(basename ${SRC_URL})"
+                elif [ "$(file -b --mime-type "$(basename ${SRC_URL})" | cut -d '/' -f 2)" = "x-bzip2" ]; then
+                    echo "=== Extracting $(basename ${SRC_URL}) ==="
+                    tar xjf "$(basename ${SRC_URL})"
+                elif [ "$(file -b --mime-type "$(basename ${SRC_URL})" | cut -d '/' -f 2)" = "x-tar" ]; then
+                    echo "=== Extracting $(basename ${SRC_URL}) ==="
+                    tar xf "$(basename ${SRC_URL})" 
+                elif [ "$(file -b --mime-type "$(basename ${SRC_URL})" | cut -d '/' -f 2)" = "zip" ]; then
+                    echo "=== Extracting $(basename ${SRC_URL}) ==="
+                    unzip "$(basename ${SRC_URL})"
+                fi
             fi
         fi
     done    
