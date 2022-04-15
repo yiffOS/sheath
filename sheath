@@ -31,12 +31,29 @@ function make_package() {
 
     # Download from SRC array with curl
     for i in "${!SRC[@]}"; do
+        # Clear SRC_URL and SRC_FOLDER
+        SRC_URL=""
+        SRC_FOLDER=""
+        
         # Check if a | is present in the URL, split it if it is as the 2nd array element will be the extracted folder name
         if [[ "${SRC[$i]}" =~ "|" ]]; then
             SRC_URL="${SRC[$i]%%|*}"
             SRC_FOLDER="${SRC[$i]##*|}"
         else
             SRC_URL="${SRC[$i]}"
+        fi
+
+        if ! curl --head --output /dev/null --silent --fail ${SRC_URL};
+        then 
+            if [[ -f "${PKGSCRIPTDIR}/${SRC_URL}" ]]; then
+                echo "=== Using local file ${PKGSCRIPTDIR}/${SRC_URL} ==="
+                cp -r "${PKGSCRIPTDIR}/${SRC_URL}" "${WORKDIR}"
+
+                continue
+            else
+                echo "=== Invalid URL/Path! ==="
+                exit 1
+            fi
         fi
 
         echo "=== Downloading from ${SRC_URL} ==="
@@ -79,7 +96,7 @@ function make_package() {
                     tar xf "$(basename ${SRC_URL})" -C ${SRC_FOLDER}
                 elif [ "$(file -b --mime-type "$(basename ${SRC_URL})" | cut -d '/' -f 2)" = "zip" ]; then
                     echo "=== Extracting $(basename ${SRC_URL}) into ${SRC_FOLDER} ==="
-                    unzip "$(basename ${SRC_URL})"
+                    unzip "$(basename ${SRC_URL})" -d ${SRC_FOLDER}
                 fi
             else
                 if [ "$(file -b --mime-type "$(basename ${SRC_URL})" | cut -d '/' -f 2)" = "gzip" ]; then
