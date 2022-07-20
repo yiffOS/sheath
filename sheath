@@ -43,14 +43,14 @@ function make_package() {
             SRC_URL="${SRC[$i]}"
         fi
 
-        if ! curl --head --output /dev/null --silent --fail ${SRC_URL};
-        then 
-            if [[ -f "${PKGSCRIPTDIR}/${SRC_URL}" ]]; then
-                echo "=== Using local file ${PKGSCRIPTDIR}/${SRC_URL} ==="
-                cp -r "${PKGSCRIPTDIR}/${SRC_URL}" "${WORKDIR}"
 
-                continue
-            else
+        if [[ -f "${PKGSCRIPTDIR}/${SRC_URL}" ]]; then
+            echo "=== Using local file ${PKGSCRIPTDIR}/${SRC_URL} ==="
+            cp -r "${PKGSCRIPTDIR}/${SRC_URL}" "${WORKDIR}"
+            continue
+        else
+            if ! curl --head --output /dev/null --silent --fail ${SRC_URL};
+            then
                 echo "=== Invalid URL/Path! ==="
                 exit 1
             fi
